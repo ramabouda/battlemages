@@ -1,6 +1,6 @@
-from channels import route
+from channels import route_class
 
-import consumers
+from .consumers import PresenceConsumer
 
 
 # The channel routing defines what channels get handled by what consumers,
@@ -9,9 +9,5 @@ import consumers
 # While this is under stream/ compared to the HTML page, we could have it on the
 # same URL if we wanted; Daphne separates by protocol as it negotiates with a browser.
 channel_routing = [
-    # Called when incoming WebSockets connect
-    route("websocket.connect", consumers.connect_player, path=r'^/ws/$'),
-
-    # Called when the client closes the socket
-    route("websocket.disconnect", consumers.disconnect_player, path=r'^/ws/$'),
+    route_class(PresenceConsumer, path=r'^/ws/$'),
 ]

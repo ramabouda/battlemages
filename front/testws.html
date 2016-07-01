@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>WS</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.0.0/jquery.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.js" type="text/javascript"></script>
+</head>
+<body>
+
+<script>
+  $(function () {
+    // Correctly decide between ws:// and wss://
+    var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+    var ws_path = ws_scheme + '://127.0.0.1:8000/ws/';
+    console.log("Connecting to " + ws_path);
+    var socket = new ReconnectingWebSocket(ws_path);
+    // Handle incoming messages
+    socket.onmessage = function (message) {
+        // Decode the JSON
+        console.log("Got websocket message " + message.data);
+        var data = JSON.parse(message.data);
+        // Handle errors
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+    };
+
+    // Helpful debugging
+    socket.onopen = function () {
+        console.log("Connected to socket");
+    };
+    socket.onclose = function () {
+        console.log("Disconnected from socket");
+    }
+  });
+</script>
+
+
+
+
+
+</body>
+</html>
+
+
+
