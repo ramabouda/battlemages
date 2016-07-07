@@ -44,6 +44,9 @@ INSTALLED_APPS = [
     'rest_framework',
 
     'battlemages.core.players',
+    'battlemages.core.game',
+    'battlemages.core.mages',
+    'battlemages.core.spells',
     'battlemages.api',
 ]
 
