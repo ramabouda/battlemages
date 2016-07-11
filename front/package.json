@@ -8,6 +8,8 @@
   },
   "author": "",
   "dependencies": {
-    "systematic": "^0.6.1"
+    "jquery": "3.1.0",
+    "restful.js": "0.9.6",
+    "systematic": "0.6.4"
   }
 }
