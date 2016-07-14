@@ -9,3 +9,4 @@ django-filters==0.2.1
 Django==1.9.7
 djangorestframework-jwt==1.8.0
 djangorestframework==3.3.3
+pyyaml==3.11

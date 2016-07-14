@@ -1,0 +1,55 @@
+- model: mages.mage
+  pk: 1
+  fields:
+    name: Termifire
+    hp_max: 15
+    element: fire
+    spells: []
+- model: mages.mage
+  pk: 2
+  fields:
+    name: OmegaMax
+    hp_max: 15
+    element: fire
+    spells: []
+- model: spells.spell
+  pk: 1
+  fields: {name: geyser, slug: geyser, mana_cost: 2, damage: 5, mana_damage: 0, element: water}
+- model: spells.spell
+  pk: 2
+  fields: {name: lightning, slug: lightning, mana_cost: 2, damage: 5, mana_damage: 0,
+    element: air}
+- model: spells.spell
+  pk: 3
+  fields: {name: shower, slug: shower, mana_cost: 0, damage: 1, mana_damage: 0, element: water}
+- model: spells.spell
+  pk: 4
+  fields: {name: hot wind, slug: hot-wind, mana_cost: 0, damage: 1, mana_damage: 0,
+    element: air}
+- model: spells.spell
+  pk: 5
+  fields: {name: storm, slug: storm, mana_cost: 5, damage: 10, mana_damage: 0, element: air}
+- model: spells.spell
+  pk: 6
+  fields: {name: tsunami, slug: tsunami, mana_cost: 5, damage: 10, mana_damage: 0,
+    element: water}
+- model: players.player
+  pk: 2
+  fields:
+    registration_date: 2016-07-20
+    ranking: 0
+    gold: 0
+    last_activity: 2016-07-20
+    groups: []
+    user_permissions: []
+    friends: []
+- model: players.player
+  pk: 3
+  fields:
+    registration_date: 2016-07-20
+    ranking: 0
+    gold: 0
+    last_activity: 2016-07-20
+    groups: []
+    user_permissions: []
+    friends: []

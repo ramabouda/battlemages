@@ -7,7 +7,7 @@ class Player(User):
     ranking = models.IntegerField(default=0)
     friends = models.ManyToManyField('self', blank=True)
     gold = models.IntegerField(default=0)
-    last_activity = models.DateField()
+    last_activity = models.DateField(auto_now=True)
 
     class Meta:
         verbose_name = "Player"
