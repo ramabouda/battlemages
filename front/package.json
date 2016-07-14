@@ -9,7 +9,10 @@
   "author": "",
   "dependencies": {
     "jquery": "3.1.0",
+    "js-cookie": "2.1.2",
+    "jwt-decode": "2.0.1",
     "restful.js": "0.9.6",
-    "systematic": "0.6.4"
+    "systematic": "0.6.4",
+    "whatwg-fetch": "1.0.0"
   }
 }
