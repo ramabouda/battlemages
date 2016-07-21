@@ -1,22 +1,33 @@
-import {api} from 'battlemages/core/api'
-import {TokenManager} from 'battlemages/core/auth'
+import Vue from 'vue'
+
+import {Authentication} from 'battlemages/core/auth'
+import loginTemplate from './template.jade'
 
 
-const tokenManager = new TokenManager()
-
-if (tokenManager.detectAuth()) {
+const auth = new Authentication()
+if (auth.isAuthenticated()) {
   window.location = './game'
 }
 
-api.get('auth_token').then(() => {
-  debugger
+
+export const loginVue = new Vue({
+  el: '#app',
+  template: loginTemplate(),
+  data: {
+    username: '',
+    password: '',
+    error: '',
+  },
+  methods: {
+    login: function (event) {
+      event.preventDefault()
+      auth.authenticate({
+        username: this.username,
+        password: this.password,
+      })
+        .then(() => (window.location = './game'))
+        .catch(error => (this.error = error.message))
+    },
+  },
 })
 
-
-
-
-
-
-import $ from 'jquery'
-
-$('#app').html('<h1>Login</h1>')

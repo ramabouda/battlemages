@@ -162,11 +162,11 @@ JWT_AUTH = {
     'JWT_VERIFY': True,
     'JWT_VERIFY_EXPIRATION': True,
     # Remember login (without refresh, e.g. without usage)
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=1),
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
 
     'JWT_ALLOW_REFRESH': True,
     # Can refresh forever
     'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=65000),
 
-    'JWT_AUTH_HEADER_PREFIX': 'JWT',
+    'JWT_AUTH_HEADER_PREFIX': 'Bearer',
 }

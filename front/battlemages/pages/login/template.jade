@@ -1,0 +1,8 @@
+div
+  h1 Login
+  form
+    input(v-model='username' placeholder='username' type='text')
+    input(v-model='password' placeholder='password' type='password')
+    input(type='submit' v-on:click='login($event)')
+
+    p {{ error }}
