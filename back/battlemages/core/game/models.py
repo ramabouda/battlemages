@@ -1,24 +1,42 @@
+import random
+
 from django.core.validators import MaxValueValidator
 from django.db import models
 from battlemages.core.mages.models import Mage
 from battlemages.core.spells.models import Spell
 
 from .constants import MANA_MAX, MAX_X, MAX_Y, TEAM_CHOICES
+from .exceptions import HasMoved, HasCasted, NotInHand, CannotPay, IsDead
+
+class Card(models.Model):
+    spell = models.ForeignKey(Spell, related_name="cards")
+    mage = models.ForeignKey('MageState')
+    used = models.BooleanField(default=False)
+    in_hand = models.BooleanField(default=False)
+
+    def __str__(self):
+        return "{} ({}used)".format(self.spell, "" if self.used else "not ")
+
+# decorator to easily ensure that a mage is not dead before performing an action
+# see https://stackoverflow.com/questions/11731136/python-class-method-decorator-w-self-arguments
+def not_if_dead(f):
+    def wrapper(*args, **kwargs):
+        if args[0].dead:  # args[0] is self
+            raise IsDead
+        return f(*args, **kwargs)
+    return wrapper
 
 class MageState(models.Model):
     mage = models.ForeignKey(Mage, on_delete=models.PROTECT)
     game = models.ForeignKey('Game', on_delete=models.CASCADE, related_name='mages')
-    team = models.PositiveSmallIntegerField(
-        choices=TEAM_CHOICES)
+    team = models.PositiveSmallIntegerField(choices=TEAM_CHOICES)
     location_x = models.PositiveSmallIntegerField(validators=[MaxValueValidator(MAX_X)])
     location_y = models.PositiveSmallIntegerField(validators=[MaxValueValidator(MAX_Y)])
     hp = models.SmallIntegerField()
     mana = models.SmallIntegerField(default=0)
-    spells_in_hand = models.ManyToManyField(Spell, related_name="in_hand_of")
-    discarded_spells = models.ManyToManyField(Spell, related_name="discarded_by")
     dead = models.BooleanField(default=False)
-    can_move = models.BooleanField(default=True)
-    can_cast = models.BooleanField(default=True)
+    has_moved = models.BooleanField(default=False)
+    has_casted = models.BooleanField(default=False)
 
     @property
     def location(self):
@@ -27,6 +45,7 @@ class MageState(models.Model):
     @location.setter
     def location(self, new_location):
         self.location_x, self.location_y = new_location
+
 
     def _lose_hp(self, amount):
         if self.hp - amount < 0:
@@ -41,24 +60,50 @@ class MageState(models.Model):
     def receive_damage(self, amount):
         self._lose_hp(amount)
 
+    @not_if_dead
     def move(self, location):
-        assert self.can_move, "tried to move but found can_move as False"
+        if self.has_moved:
+            raise HasMoved("tried to move but found has_moved as False")
         self.location = location
-        self.can_move = False
+        self.has_moved = True
 
-    def cast_spell(self, spell):
+    @not_if_dead
+    def use_card(self, card, *args, **kwargs):
         "Validate the casting, pay the mana"
-        assert self.can_cast, "tried to cast a spell but found can_cast as False"
+        if not self.cards.filter(in_hand=True, id=card.id).exists():
+            raise NotInHand
+        if self.mana - card.spell.mana_cost < 0:
+            raise CannotPay
+        if self.has_casted:
+            raise HasCasted("tried to cast but found has_casted as True")
+        card.spell.cast(self, *args, **kwargs)
+        # will not be affected if previous line raises an exception
         self.mana -= spell.mana_cost
-        self.can_cast = False
+        self.has_casted = True
+        card.used = True
 
+    @not_if_dead
+    def draw_new_card(self):
+        "place a random card in hand"
+        try:
+            card = random.choice(self.cards.filter(in_hand=False, used=False))
+            card.in_hand = True
+            card.save()
+        except IndexError: # will be raised if no more cards are left to be used
+            pass
+
+    @not_if_dead
     def start_new_round(self):
         """reinit the state of the mage for a new round.
         
-        Increase mana, allow movement and casting."""
-        self.can_move = True
-        self.can_cast = True
+        Increase mana, draw new card, allow movement and casting."""
+        self.has_moved = False
+        self.has_casted = False
         self.mana = min(MANA_MAX, self.mana + MANA_REGEN)
+        self.draw_next_card()
+        # FIXME when should this check be exactly?
+        if self.cards.filter(in_hand=False, used=False).count() == 0:
+            self.die()
 
 
 class Game(models.Model):
@@ -78,6 +123,7 @@ class Game(models.Model):
         # TODO validate the spell
         spell.cast(attacker=attacker, target=target)
 
+    # FIXME is this still usefull?
     @classmethod
     def new_game(player_1, player_2, mages_p1, mages_p2):
         "Create a new game given the players and the lists of mages they are going to use"

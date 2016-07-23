@@ -18,3 +18,20 @@ class Spell(models.Model):
         attacker.cast_spell(self)
         if target is not None:
             target.receive_damage(self.damage)
+
+
+class DeckElement(models.Model):
+    spell = models.ForeignKey(Spell)
+    deck = models.ForeignKey('Deck')
+    number = models.PositiveSmallIntegerField(default=1)
+
+    class Meta:
+        unique_together = ('spell', 'deck')
+
+
+class Deck(models.Model):
+    name = models.CharField(max_length=50, default="New deck")
+    cards = models.ManyToManyField(Spell, through=DeckElement)
+
+    def __str__(self):
+        return self.name
