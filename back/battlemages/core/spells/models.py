@@ -31,7 +31,18 @@ class DeckElement(models.Model):
 
 class Deck(models.Model):
     name = models.CharField(max_length=50, default="New deck")
-    cards = models.ManyToManyField(Spell, through=DeckElement)
+    elements = models.ManyToManyField(Spell, through=DeckElement)
 
     def __str__(self):
         return self.name
+
+    def add_spell(self, spell):
+        try:
+            element = self.elements.get(spell=spell)
+            element.number += 1
+            element.save()
+        except DeckElement.DoesNotExist:
+            DeckElement.objects.create(
+                spell=spell,
+                deck=deck,
+            )

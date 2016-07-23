@@ -105,6 +105,14 @@ class MageState(models.Model):
         if self.cards.filter(in_hand=False, used=False).count() == 0:
             self.die()
 
+    def use_deck(self, deck):
+        "helper function to convert a Deck to individual cards. To be used before a game"
+        cards = []
+        for e in deck.elements:
+            for n in range(e.number):
+                cards.append(Card(spell=e.spell, mage=self))
+        Card.objects.bulk_create(cards)
+
 
 class Game(models.Model):
     round_number = models.PositiveSmallIntegerField(default=0)
@@ -119,9 +127,9 @@ class Game(models.Model):
         # TODO validate the new location
         mage.move(location)
 
-    def cast_spell(self, attacker, target, spell):
+    def use_card(self, attacker, card, *args, **kwargs):
         # TODO validate the spell
-        spell.cast(attacker=attacker, target=target)
+        attacker.use_card(card, *args, **kwargs)
 
     # FIXME is this still usefull?
     @classmethod
