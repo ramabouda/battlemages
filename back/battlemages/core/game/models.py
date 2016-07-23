@@ -63,13 +63,15 @@ class MageState(models.Model):
     @not_if_dead
     def move(self, location):
         if self.has_moved:
-            raise HasMoved("tried to move but found has_moved as False")
+            raise HasMoved("tried to move but found has_moved as True")
         self.location = location
         self.has_moved = True
 
     @not_if_dead
     def use_card(self, card, *args, **kwargs):
         "Validate the casting, pay the mana"
+        if self.has_casted:
+            raise HasCasted("tried to move but found has_casted as True")
         if not self.cards.filter(in_hand=True, id=card.id).exists():
             raise NotInHand
         if self.mana - card.spell.mana_cost < 0:
@@ -81,6 +83,7 @@ class MageState(models.Model):
         self.mana -= spell.mana_cost
         self.has_casted = True
         card.used = True
+        card.save()
 
     @not_if_dead
     def draw_new_card(self):
