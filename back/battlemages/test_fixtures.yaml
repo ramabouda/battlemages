@@ -33,6 +33,33 @@
   pk: 6
   fields: {name: tsunami, slug: tsunami, mana_cost: 5, damage: 10, mana_damage: 0,
     element: water}
+- model: spells.deckelement
+  pk: 1
+  fields: {spell: 1, deck: 2, number: 3}
+- model: spells.deckelement
+  pk: 2
+  fields: {spell: 3, deck: 2, number: 1}
+- model: spells.deckelement
+  pk: 3
+  fields: {spell: 6, deck: 2, number: 1}
+- model: spells.deckelement
+  pk: 4
+  fields: {spell: 2, deck: 3, number: 2}
+- model: spells.deckelement
+  pk: 5
+  fields: {spell: 4, deck: 3, number: 3}
+- model: spells.deckelement
+  pk: 6
+  fields: {spell: 5, deck: 3, number: 1}
+- model: spells.deck
+  pk: 1
+  fields: {name: New deck}
+- model: spells.deck
+  pk: 2
+  fields: {name: deck de feu}
+- model: spells.deck
+  pk: 3
+  fields: {name: "deck mouill\xE9"}
 - model: players.player
   pk: 2
   fields:

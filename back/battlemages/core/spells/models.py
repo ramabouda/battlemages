@@ -22,16 +22,18 @@ class Spell(models.Model):
 
 class DeckElement(models.Model):
     spell = models.ForeignKey(Spell)
-    deck = models.ForeignKey('Deck')
+    deck = models.ForeignKey('Deck', related_name="elements")
     number = models.PositiveSmallIntegerField(default=1)
 
     class Meta:
         unique_together = ('spell', 'deck')
 
+    def __str__(self):
+        return "{}*{}".format(self.number, self.spell)
+
 
 class Deck(models.Model):
     name = models.CharField(max_length=50, default="New deck")
-    elements = models.ManyToManyField(Spell, through=DeckElement)
 
     def __str__(self):
         return self.name
@@ -44,5 +46,5 @@ class Deck(models.Model):
         except DeckElement.DoesNotExist:
             DeckElement.objects.create(
                 spell=spell,
-                deck=deck,
+                deck=self,
             )
