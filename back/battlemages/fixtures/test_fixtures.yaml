@@ -63,6 +63,7 @@
 - model: players.player
   pk: 2
   fields:
+    username: "toto"
     registration_date: 2016-07-20
     ranking: 0
     gold: 0
@@ -73,6 +74,7 @@
 - model: players.player
   pk: 3
   fields:
+    username: "titi"
     registration_date: 2016-07-20
     ranking: 0
     gold: 0
