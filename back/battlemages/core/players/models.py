@@ -1,8 +1,8 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 
 
-class Player(User):
+class Player(AbstractUser):
     registration_date = models.DateField(auto_now_add=True)
     ranking = models.IntegerField(default=0)
     friends = models.ManyToManyField('self', blank=True)
