@@ -27,7 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
+FIXTURE_DIRS = ['battlemages/fixtures']
 # Application definition
 
 INSTALLED_APPS = [

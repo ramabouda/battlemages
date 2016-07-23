@@ -21,8 +21,8 @@ class Spell(models.Model):
 
 
 class DeckElement(models.Model):
-    spell = models.ForeignKey(Spell)
-    deck = models.ForeignKey('Deck', related_name="elements")
+    spell = models.ForeignKey(Spell, on_delete=models.CASCADE)
+    deck = models.ForeignKey('Deck', related_name="elements", on_delete=models.CASCADE)
     number = models.PositiveSmallIntegerField(default=1)
 
     class Meta:
