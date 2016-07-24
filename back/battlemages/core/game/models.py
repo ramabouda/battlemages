@@ -5,12 +5,13 @@ from django.db import models
 from battlemages.core.mages.models import Mage
 from battlemages.core.spells.models import Spell
 
-from .constants import MANA_MAX, MAX_X, MAX_Y, TEAM_CHOICES
-from .exceptions import HasMoved, HasCasted, NotInHand, CannotPay, IsDead
+from .constants import MANA_MAX, MANA_REGEN, MAX_X, MAX_Y, TEAM_CHOICES
+from .exceptions import HasMoved, HasCasted, NotInHand, CannotPay, IsDead,\
+    OutOfRange, OutOfBoundaries, LocationNotAvailable
 
 class Card(models.Model):
-    spell = models.ForeignKey(Spell, related_name="cards")
-    mage = models.ForeignKey('MageInGame')
+    spell = models.ForeignKey(Spell)
+    mage = models.ForeignKey('MageInGame', related_name="cards")
     used = models.BooleanField(default=False)
     in_hand = models.BooleanField(default=False)
 
@@ -109,7 +110,7 @@ class MageInGame(models.Model):
         self.has_moved = False
         self.has_casted = False
         self.mana = min(MANA_MAX, self.mana + MANA_REGEN)
-        self.draw_next_card()
+        self.draw_new_card()
         # FIXME when should this check be exactly?
         if self.cards.filter(in_hand=False, used=False).count() == 0:
             self.die()
@@ -134,21 +135,6 @@ class MageInGame(models.Model):
 class Game(models.Model):
     round_number = models.PositiveSmallIntegerField(default=0)
 
-    def new_round(self):
-        for ms in self.mages.all():
-            ms.start_new_round()
-        self.round_number += 1
-
-    def move(self, mage, location):
-        "Move the mage to the location given as a tuple (x, y)"
-        # TODO validate the new location
-        mage.move(location)
-
-    def use_card(self, attacker, card, *args, **kwargs):
-        # TODO validate the spell
-        attacker.use_card(card, *args, **kwargs)
-
-    # FIXME is this still usefull?
     @staticmethod
     def new_game(player_1, player_2, mages_p1, mages_p2):
         "Create a new game given the players and the lists of mages they are going to use"
@@ -167,3 +153,48 @@ class Game(models.Model):
             mage.team = TEAM_CHOICES[1][0]
             mage.save()
         return game
+
+    # FIXME shouldn't this function live somewhere else?
+    @staticmethod
+    def get_distance(origin, target):
+        """calcute the distance between two objects, each being a MageInGame or a tuple (x, y)"""
+        assert isinstance(origin, (MageInGame, tuple))
+        assert isinstance(target, (MageInGame, tuple))
+        try:
+            x_o, y_o = origin
+        except TypeError:
+            x_o, y_o = origin.location
+
+        try:
+            x_t, y_t = target
+        except TypeError:
+            x_t, y_t = target.location
+        return max(abs(x_t - x_o), abs(y_t - y_o))
+
+    def is_available(self, location):
+        x, y = location
+        return not MageInGame.objects.filter(game=self)\
+            .filter(location_x=x, location_y=y)
+
+    def new_round(self):
+        for ms in self.mages.all():
+            ms.start_new_round()
+            ms.save()
+        self.round_number += 1
+
+    def move(self, mage, location):
+        "Move the mage to the location given as a tuple (x, y)"
+        # TODO validate the new location
+        x, y = location
+        if not (0 <= x < MAX_X and 0 <= y < MAX_Y):
+            raise OutOfBoundaries
+        if Game.get_distance(mage, location) > 1:
+            raise OutOfRange
+        if not self.is_available(location):
+            raise LocationNotAvailable
+        mage.move(location)
+        mage.save()
+
+    def use_card(self, attacker, card, *args, **kwargs):
+        # TODO validate the spell
+        attacker.use_card(card, *args, **kwargs)
