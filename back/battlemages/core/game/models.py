@@ -10,7 +10,7 @@ from .exceptions import HasMoved, HasCasted, NotInHand, CannotPay, IsDead
 
 class Card(models.Model):
     spell = models.ForeignKey(Spell, related_name="cards")
-    mage = models.ForeignKey('MageState')
+    mage = models.ForeignKey('MageInGame')
     used = models.BooleanField(default=False)
     in_hand = models.BooleanField(default=False)
 
@@ -26,7 +26,7 @@ def require_alive(f):
         return f(*args, **kwargs)
     return wrapper
 
-class MageState(models.Model):
+class MageInGame(models.Model):
     mage = models.ForeignKey(Mage, on_delete=models.PROTECT)
     game = models.ForeignKey(
         'Game', on_delete=models.CASCADE, related_name='mages', null=True)
@@ -126,7 +126,7 @@ class MageState(models.Model):
     def from_mage(mage):
         """to be used when the player is building his team, so that we can attach
         the chosen spells. game, location, team should be filled later"""
-        return MageState.objects.create(
+        return MageInGame.objects.create(
             mage=mage,
             hp=mage.hp_max
         )

@@ -2,7 +2,7 @@ from django.test import TestCase
 from battlemages.core.mages.models import Mage
 from battlemages.core.players.models import Player
 from battlemages.core.spells.models import Deck
-from .models import Game, MageState, Card
+from .models import Game, MageInGame, Card
 
 class InitGameTestCase(TestCase):
     "tests about setting up and destroying the game"
@@ -15,8 +15,8 @@ class InitGameTestCase(TestCase):
         self.p_titi = Player.objects.get(username="titi")
 
     def testCreateDestroyGame(self):
-        ms_termi = MageState.from_mage(self.m_termi)
-        ms_omega = MageState.from_mage(self.m_termi)
+        ms_termi = MageInGame.from_mage(self.m_termi)
+        ms_omega = MageInGame.from_mage(self.m_termi)
 
         self.assertFalse(Card.objects.exists())
         ms_termi.use_deck(Deck.objects.get(name="deck de feu"))
@@ -40,4 +40,4 @@ class InitGameTestCase(TestCase):
         # test cascading delete
         game.delete()
         self.assertFalse(Card.objects.exists())
-        self.assertFalse(MageState.objects.exists())
+        self.assertFalse(MageInGame.objects.exists())
