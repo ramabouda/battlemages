@@ -101,3 +101,26 @@ class MovementTestCase(TestCase):
         # now the mage can move, but we need to update the object
         self.ms_termi = self.game.mages.get(id=self.ms_termi.id)
         self.game.move(self.ms_termi, (3, 3))
+
+
+def CastingTestCase(TestCase):
+    fixtures = ['test_fixtures.yaml']
+
+    def setUp(self):
+        m_termi = Mage.objects.get(name="Termifire")
+        m_omega = Mage.objects.get(name="OmegaMax")
+        p_toto = Player.objects.get(username="toto")
+        p_titi = Player.objects.get(username="titi")
+        self.ms_termi = MageInGame.from_mage(m_termi)
+        self.ms_omega = MageInGame.from_mage(m_omega)
+
+        self.ms_termi.use_deck(Deck.objects.get(name="deck de feu"))
+        self.ms_omega.use_deck(Deck.objects.get(name="deck mouillé"))
+        self.game = Game.new_game(
+            player_1=p_toto,
+            player_2=p_titi,
+            mages_p1=[self.ms_termi,],
+            mages_p2=[self.ms_omega,]
+        )
+        self.ms_termi.location = (4, 5)
+        self.ms_termi.save()
