@@ -20,10 +20,10 @@ class Spell(models.Model):
             target.receive_damage(self.damage)
 
 
-class DeckElement(models.Model):
+class DeckSpell(models.Model):
     spell = models.ForeignKey(Spell, on_delete=models.CASCADE)
     deck = models.ForeignKey('Deck', related_name="elements", on_delete=models.CASCADE)
-    number = models.PositiveSmallIntegerField(default=1)
+    quantity = models.PositiveSmallIntegerField(default=1)
 
     class Meta:
         unique_together = ('spell', 'deck')
@@ -41,7 +41,7 @@ class Deck(models.Model):
     def add_spell(self, spell):
         try:
             element = self.elements.get(spell=spell)
-            element.number += 1
+            element.quantity += 1
             element.save()
         except DeckElement.DoesNotExist:
             DeckElement.objects.create(
