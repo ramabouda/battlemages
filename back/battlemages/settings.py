@@ -1,5 +1,4 @@
 import os
-import datetime
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -149,24 +148,9 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.BasicAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
     ),
     'DEFAULT_FILTER_BACKENDS': ('rest_framework.filters.DjangoFilterBackend',)
 }
 
 # TODO: check security, maybe whitelist to localhost and the JS domain
 CORS_ORIGIN_ALLOW_ALL = True
-
-
-JWT_AUTH = {
-    'JWT_VERIFY': True,
-    'JWT_VERIFY_EXPIRATION': True,
-    # Remember login (without refresh, e.g. without usage)
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
-
-    'JWT_ALLOW_REFRESH': True,
-    # Can refresh forever
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=65000),
-
-    'JWT_AUTH_HEADER_PREFIX': 'Bearer',
-}

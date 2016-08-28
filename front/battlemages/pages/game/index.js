@@ -7,11 +7,14 @@ import template from './template.jade'
 
 const auth = new Authentication()
 if (!auth.isAuthenticated()) {
-  window.location = './login'
+  // window.location = './login'
 }
 
 
 const ws = new ReconnectingWebSocket('ws://127.0.0.1:8000/ws/?token=' + auth.token)
+ws.onclose = function () {
+  debugger
+}
 
 const connectedUsers = {}
 ws.onmessage = function (response) {
@@ -27,6 +30,7 @@ export const gameVue = new Vue({
   },
   methods: {
     logout: function () {
+      ws.close()
       auth.logout()
       window.location = './login'
     },
