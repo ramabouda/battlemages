@@ -1,4 +1,8 @@
-from .presence.routing import channel_routing as presence_cr
+from channels import include, route_class
+from .demultiplexer import Demultiplexer
 
 
-channel_routing = presence_cr
+channel_routing = [
+    route_class(Demultiplexer, path=r'^/ws/$'),
+    include("battlemages.channels.presence.routing.channel_routing"),
+]
