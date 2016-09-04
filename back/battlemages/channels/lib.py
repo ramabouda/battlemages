@@ -146,7 +146,7 @@ class DemultiplexedConsumer(
         Group(name).send(message)
 
 
-class ConnectedDemultiplexedConsumer(
+class AuthenticatedDemultiplexedConsumer(
     GroupConsumerMixin,
     DemultiplexedConsumer,
     DefaultConsumerMixin
@@ -160,8 +160,15 @@ class ConnectedDemultiplexedConsumer(
 
 
 class WebsocketConsumerDemultiplexer(WebsocketDemultiplexer):
+    """
+    Demultiplexer for consumer classes based on DemultiplexedConsumer.
+
+    Takes a simple list of consumers and automatically forwards all events
+    """
+
     http_user = True
 
+    # Put your consumers here.
     consumers = []
 
     def receive(self, content, **kwargs):

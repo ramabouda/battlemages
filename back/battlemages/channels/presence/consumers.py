@@ -1,7 +1,7 @@
-from battlemages.channels.lib import ConnectedDemultiplexedConsumer
+from battlemages.channels.lib import AuthenticatedDemultiplexedConsumer
 
 
-class PresenceConsumer(ConnectedDemultiplexedConsumer):
+class PresenceConsumer(AuthenticatedDemultiplexedConsumer):
     stream_name = 'presence'
 
     def connection_groups(self, **kwargs):
