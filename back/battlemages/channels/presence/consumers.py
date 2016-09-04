@@ -2,7 +2,7 @@ from battlemages.channels.lib import ConnectedDemultiplexedConsumer
 
 
 class PresenceConsumer(ConnectedDemultiplexedConsumer):
-    consumer_name = 'presence'
+    stream_name = 'presence'
 
     def connection_groups(self, **kwargs):
         """Define the groups joined while connected"""

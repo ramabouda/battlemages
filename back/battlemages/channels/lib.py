@@ -1,9 +1,9 @@
 from channels.generic.websockets import BaseConsumer
 from channels.generic.websockets import WebsocketDemultiplexer
-from channels import Group
+from channels import Group, Channel
 
 
-class DefaultGenericConsumerMixin(object):
+class DefaultConsumerMixin(object):
     """
     Basic structure to plug actions on connection, disconnection
     """
@@ -90,12 +90,13 @@ class MethodMappingCreator(type):
     def __new__(cls, name, bases, dct):
         """Generates the method mapping according to the consumer name
 
-        Method mapping is used statically, it needs to be set at class creation
+        Method mapping is used statically, it needs to be set at class creation.
+        method_mapping could also be changed to a function, to remove this complexity.
         """
         dct['method_mapping'] = {
-            "{}.connect".format(dct['consumer_name']): "raw_connect",
-            "{}.receive".format(dct['consumer_name']): "raw_receive",
-            "{}.disconnect".format(dct['consumer_name']): "raw_disconnect",
+            "{}.connect".format(dct['stream_name']): "raw_connect",
+            "{}.receive".format(dct['stream_name']): "raw_receive",
+            "{}.disconnect".format(dct['stream_name']): "raw_disconnect",
         }
         return super(MethodMappingCreator, cls).__new__(cls, name, bases, dct)
 
@@ -109,12 +110,12 @@ class DemultiplexedConsumer(
     """
 
     # The name used for the multiplexing.
-    consumer_name = None
+    stream_name = None
 
     def __init__(self, *args, **kwargs):
         """Ensures class config has been set."""
-        if self.consumer_name is None:
-            raise AttributeError('Attribute consumer_name must be defined.')
+        if self.stream_name is None:
+            raise AttributeError('Attribute stream_name must be defined.')
         super(DemultiplexedConsumer, self).__init__(*args, **kwargs)
 
     def raw_receive(self, message, **kwargs):
@@ -134,7 +135,7 @@ class DemultiplexedConsumer(
     @classmethod
     def format_message(cls, payload):
         """Formats a serializable payload using the consumer name as the stream name"""
-        return WebsocketDemultiplexer.encode(cls.consumer_name, payload)
+        return WebsocketDemultiplexer.encode(cls.stream_name, payload)
 
     @classmethod
     def group_send(cls, name, payload, close=False):
@@ -148,11 +149,48 @@ class DemultiplexedConsumer(
 class ConnectedDemultiplexedConsumer(
     GroupConsumerMixin,
     DemultiplexedConsumer,
-    DefaultGenericConsumerMixin
+    DefaultConsumerMixin
 ):
     """
     Full featured consumer client for a demultiplexer, with groups and authentication
     """
 
-    consumer_name = None
+    stream_name = None
     channel_session_user = True
+
+
+class WebsocketConsumerDemultiplexer(WebsocketDemultiplexer):
+    http_user = True
+
+    consumers = []
+
+    def receive(self, content, **kwargs):
+        """Forward messages to all consumers"""
+        # Check the frame looks good
+        if isinstance(content, dict) and "stream" in content and "payload" in content:
+            # Match it to a channel
+            stream = content['stream']
+            for consumer in self.consumers:
+                if consumer.stream_name == stream:
+                    # Extract payload and add in reply_channel
+                    payload = content['payload']
+                    if not isinstance(payload, dict):
+                        raise ValueError("Multiplexed frame payload is not a dict")
+                    payload['reply_channel'] = self.message['reply_channel']
+                    # Send it onto the new channel
+                    Channel('{}.receive'.format(consumer.stream_name)).send(payload)
+                    return
+
+            raise ValueError("Invalid multiplexed frame received (stream not mapped)")
+        else:
+            raise ValueError("Invalid multiplexed frame received (no channel/payload key)")
+
+    def connect(self, message, **kwargs):
+        """Forward connection to all consumers"""
+        for consumer in self.consumers:
+            Channel('{}.connect'.format(consumer.stream_name)).send(message.content)
+
+    def disconnect(self, message, **kwargs):
+        """Forward disconnection to all consumers"""
+        for consumer in self.consumers:
+            Channel('{}.disconnect'.format(consumer.stream_name)).send(message.content)
