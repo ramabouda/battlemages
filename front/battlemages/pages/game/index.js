@@ -27,7 +27,7 @@ ws.onopen = function () {
 }
 
 ws.onmessage = function (response) {
-  const joined = JSON.parse(response.data)
+  const joined = JSON.parse(response.data).payload
   Object.keys(joined).forEach(k => Vue.set(connectedUsers, k, joined[k]))
 }
 

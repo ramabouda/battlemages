@@ -9,4 +9,9 @@ class Demultiplexer(WebsocketDemultiplexer):
     }
 
     def connect(self, message, **kwargs):
-        Channel('presence.connect').send(message.content)
+        for k, v in self.mapping.items():
+            Channel('{}.connect'.format(k)).send(message.content)
+
+    def disconnect(self, message, **kwargs):
+        for k, v in self.mapping.items():
+            Channel('{}.disconnect'.format(k)).send(message.content)
