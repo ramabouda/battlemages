@@ -21,22 +21,16 @@ class PlayerSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Player
-        write_only_fields = ('password',)
         fields = ('url', 'username', 'email', 'is_staff', 'gold')
         read_only_fields = ('is_staff', 'is_superuser', 'is_active', 'date_joined',)
 
-    def restore_object(self, attrs, instance=None):
-        """Call set_password on user object. Without this the password will be stored in plain text."""
-        user = super(PlayerSerializer, self).restore_object(attrs, instance)
-        user.set_password(attrs['password'])
-        return user
 
 # ViewSets define the view behavior.
 class PlayerViewSet(viewsets.ModelViewSet):
     queryset = Player.objects.all()
     serializer_class = PlayerSerializer
 
-    # def get_permissions(self):
-    #     """Allow non-authenticated user to create via POST"""
-    #     return (permissions.AllowAny() if self.request.method == 'POST'
-    #             else IsStaffOrTargetUser()),
+    def get_permissions(self):
+        """Allow non-authenticated user to create via POST"""
+        return (permissions.AllowAny() if self.request.method == 'POST'
+                else IsStaffOrTargetUser()),

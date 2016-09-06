@@ -23,7 +23,7 @@ class DefaultConsumerMixin(object):
 
     def close(self):
         """
-        Closes the from the server end
+        Close the from the server end
         """
         self.message.reply_channel.send({"close": True})
 
@@ -36,7 +36,7 @@ class DefaultConsumerMixin(object):
 
     def disconnect(self, message, **kwargs):
         """
-        Called when a WebSocket connection is opened.
+        Called when a WebSocket connection is closed.
         """
         pass
 
@@ -88,7 +88,8 @@ class GroupConsumerMixin(object):
 class MethodMappingCreator(type):
 
     def __new__(cls, name, bases, dct):
-        """Generates the method mapping according to the consumer name
+        """
+        Generate the method mapping according to the consumer name
 
         Method mapping is used statically, it needs to be set at class creation.
         method_mapping could also be changed to a function, to remove this complexity.
@@ -103,6 +104,7 @@ class MethodMappingCreator(type):
 
 class DemultiplexedConsumer(
     BaseConsumer,
+    DefaultConsumerMixin,
     metaclass=MethodMappingCreator
 ):
     """
@@ -111,6 +113,7 @@ class DemultiplexedConsumer(
 
     # The name used for the multiplexing.
     stream_name = None
+    http_user = None
 
     def __init__(self, *args, **kwargs):
         """Ensures class config has been set."""
@@ -134,36 +137,23 @@ class DemultiplexedConsumer(
 
     @classmethod
     def format_message(cls, payload):
-        """Formats a serializable payload using the consumer name as the stream name"""
+        """Format a serializable payload using the consumer name as the stream name"""
         return WebsocketDemultiplexer.encode(cls.stream_name, payload)
 
     @classmethod
     def group_send(cls, name, payload, close=False):
-        """Sends a formatted message to a group."""
+        """Send a formatted message to a group."""
         if close:
             payload["close"] = True
         message = cls.format_message(payload)
         Group(name).send(message)
 
 
-class AuthenticatedDemultiplexedConsumer(
-    GroupConsumerMixin,
-    DemultiplexedConsumer,
-    DefaultConsumerMixin
-):
-    """
-    Full featured consumer client for a demultiplexer, with groups and authentication
-    """
-
-    stream_name = None
-    channel_session_user = True
-
-
 class WebsocketConsumerDemultiplexer(WebsocketDemultiplexer):
     """
     Demultiplexer for consumer classes based on DemultiplexedConsumer.
 
-    Takes a simple list of consumers and automatically forwards all events
+    Take a simple list of consumers and automatically forwards all events
     """
 
     http_user = True

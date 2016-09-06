@@ -1,4 +1,4 @@
-from channels import route, route_class
+from channels import route_class
 
 from .consumers import PresenceConsumer
 

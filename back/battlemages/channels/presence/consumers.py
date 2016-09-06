@@ -1,7 +1,7 @@
-from battlemages.channels.lib import AuthenticatedDemultiplexedConsumer
+from ..default_consumers import AuthenticatedGroupConsumer
 
 
-class PresenceConsumer(AuthenticatedDemultiplexedConsumer):
+class PresenceConsumer(AuthenticatedGroupConsumer):
     stream_name = 'presence'
 
     def connection_groups(self, **kwargs):
@@ -16,8 +16,11 @@ class PresenceConsumer(AuthenticatedDemultiplexedConsumer):
             'some_user_id2': 'some_user_data2',
         })
 
-        message.user.connected = True
-        message.user.save()
+        try:
+            message.user.connected = True
+            message.user.save()
+        except Exception:
+            import ipdb; ipdb.set_trace()  # breakpoint b1cfa1b6 //
 
         self.group_send('presence-all', {
             message.user.id: 'user_data_of {}'.format(message.user.username)

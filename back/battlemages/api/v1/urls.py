@@ -10,6 +10,6 @@ router = routers.DefaultRouter()
 router.register(r'player', player.PlayerViewSet)
 
 urlpatterns = [
-    url(r'authentication', authentication.AuthView.as_view()),
+    url(r'^authentication', authentication.AuthView.as_view()),
     url(r'^', include(router.urls)),
 ]

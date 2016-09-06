@@ -19,7 +19,7 @@ class QuietBasicAuthentication(BasicAuthentication):
         dialogue box. Rather ugly and bad user experience. To avoid this we ensure
         the schema returns a custom value other than 'Basic'.
         """
-        return 'xBasic realm="%s"' % self.www_authenticate_realm
+        return 'xBasic realm="{}"'.format(self.www_authenticate_realm)
 
 
 class AuthView(views.APIView):

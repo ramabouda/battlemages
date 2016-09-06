@@ -18,12 +18,14 @@ ws.onclose = function () {
 
 ws.onopen = function () {
   window.ws = ws
-  ws.send(JSON.stringify({
-    stream: 'presence',
-    payload: {
-      'toto': 'tata',
-    },
-  }))
+  setTimeout(() => {
+    ws.send(JSON.stringify({
+      stream: 'presence',
+      payload: {
+        'toto': 'tata',
+      },
+    }))
+  }, 1000)
 }
 
 ws.onmessage = function (response) {
