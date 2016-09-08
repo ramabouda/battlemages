@@ -113,7 +113,6 @@ class DemultiplexedConsumer(
 
     # The name used for the multiplexing.
     stream_name = None
-    http_user = None
 
     def __init__(self, *args, **kwargs):
         """Ensures class config has been set."""

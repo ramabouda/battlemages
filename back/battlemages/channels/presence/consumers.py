@@ -16,11 +16,8 @@ class PresenceConsumer(AuthenticatedGroupConsumer):
             'some_user_id2': 'some_user_data2',
         })
 
-        try:
-            message.user.connected = True
-            message.user.save()
-        except Exception:
-            import ipdb; ipdb.set_trace()  # breakpoint b1cfa1b6 //
+        message.user.connected = True
+        message.user.save()
 
         self.group_send('presence-all', {
             message.user.id: 'user_data_of {}'.format(message.user.username)
