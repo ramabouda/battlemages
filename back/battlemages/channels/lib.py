@@ -85,27 +85,16 @@ class GroupConsumerMixin(object):
         super(GroupConsumerMixin, self).raw_disconnect(message, **kwargs)
 
 
-class MethodMappingCreator(type):
+class classproperty(property):
+    """A decorator to transform a method to a static class property"""
 
-    def __new__(cls, name, bases, dct):
-        """
-        Generate the method mapping according to the consumer name
-
-        Method mapping is used statically, it needs to be set at class creation.
-        method_mapping could also be changed to a function, to remove this complexity.
-        """
-        dct['method_mapping'] = {
-            "{}.connect".format(dct['stream_name']): "raw_connect",
-            "{}.receive".format(dct['stream_name']): "raw_receive",
-            "{}.disconnect".format(dct['stream_name']): "raw_disconnect",
-        }
-        return super(MethodMappingCreator, cls).__new__(cls, name, bases, dct)
+    def __get__(self, cls, owner):
+        return classmethod(self.fget).__get__(None, owner)()
 
 
 class DemultiplexedConsumer(
     BaseConsumer,
     DefaultConsumerMixin,
-    metaclass=MethodMappingCreator
 ):
     """
     A consumer class to receive messages from a multiplexed websocket
@@ -113,6 +102,20 @@ class DemultiplexedConsumer(
 
     # The name used for the multiplexing.
     stream_name = None
+
+    @classproperty
+    def method_mapping(cls):
+        """
+        Generate the method mapping according to the consumer name
+
+        Method mapping is used statically, it needs to be set at class creation.
+        method_mapping could also be changed to a function, to remove this complexity.
+        """
+        return {
+            "{}.connect".format(cls.stream_name): "raw_connect",
+            "{}.receive".format(cls.stream_name): "raw_receive",
+            "{}.disconnect".format(cls.stream_name): "raw_disconnect",
+        }
 
     def __init__(self, *args, **kwargs):
         """Ensures class config has been set."""
