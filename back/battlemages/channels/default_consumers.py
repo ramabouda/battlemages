@@ -7,4 +7,5 @@ class AuthenticatedGroupConsumer(GroupConsumerMixin, DemultiplexedConsumer):
     """
 
     channel_session_user = True
+    http_user = True
     stream_name = None

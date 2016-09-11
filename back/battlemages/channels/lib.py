@@ -1,6 +1,7 @@
 from channels.generic.websockets import BaseConsumer
 from channels.generic.websockets import WebsocketDemultiplexer
 from channels import Group, Channel
+from channels.auth import channel_session_user_from_http
 
 
 class DefaultConsumerMixin(object):
@@ -102,6 +103,7 @@ class DemultiplexedConsumer(
 
     # The name used for the multiplexing.
     stream_name = None
+    http_user = None
 
     @classproperty
     def method_mapping(cls):
@@ -122,6 +124,18 @@ class DemultiplexedConsumer(
         if self.stream_name is None:
             raise AttributeError('Attribute stream_name must be defined.')
         super(DemultiplexedConsumer, self).__init__(*args, **kwargs)
+
+    # FIXME(raph): refactor in a HttpSession mixin
+    def get_handler(self, message, **kwargs):
+        # HTTP user implies channel session user
+        if self.http_user:
+            self.channel_session_user = True
+        # Get super-handler
+        handler = super(DemultiplexedConsumer, self).get_handler(message, **kwargs)
+        # Optionally apply HTTP transfer
+        if self.http_user:
+            handler = channel_session_user_from_http(handler)
+        return handler
 
     def raw_receive(self, message, **kwargs):
         """
