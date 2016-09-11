@@ -1,4 +1,3 @@
-import jwtDecode from 'jwt-decode'
 import cookies from 'js-cookie'
 
 import {api as battlemagesApi} from 'battlemages/core/api'
@@ -6,66 +5,38 @@ import {api as battlemagesApi} from 'battlemages/core/api'
 
 export class Authentication {
   constructor ({
-    tokenName = 'auth_token',
+    cookieName = 'sessionid',
     api = battlemagesApi,
   } = {}) {
     this.api = api
-    this.token = null
-    this.tokenName = tokenName
-    this.tokenData = {}
-    this.tokenRefreshTimeoutId = null
-    this.detectToken()
+    this.cookieName = cookieName
   }
 
-  setToken (_token) {
-    this.token = _token
-    this.tokenData = jwtDecode(_token)
-    this.api.header('Authorization', 'Bearer ' + this.token)
-    cookies.set(this.tokenName, this.token)
-    this.tokenRefreshTimeoutId = setTimeout(this.refresh.bind(this), this.tokenTimeLeft())
+  get sessionId () {
+    return cookies.get(this.cookieName)
   }
 
-  tokenTimeLeft () {
-    return this.tokenData.exp * 1000 - Date.now()
-  }
-
-  detectToken () {
-    const foundToken = cookies.get(this.tokenName)
-    if (foundToken) {
-      this.setToken(foundToken)
-      if (this.tokenTimeLeft() < 0) {
-        this.logout()
-        return false
-      }
-      return true
-    }
-    return false
+  set sessionId (sessionId) {
+    cookies.set(this.cookieName, sessionId)
+    // this.api.header('X-CSRFToken', 'Bearer ' + this.token)
   }
 
   isAuthenticated () {
-    return !!this.token
+    return !!this.sessionId
   }
 
   authenticate (credentials) {
-    return this.api.custom('auth_token/').post(credentials).then(response => {
+    this.api.header('Authorization', 'Basic ' + btoa(credentials.username + ':' + credentials.password))
+    return this.api.custom('authentication/').post().then(response => {
       const data = response.body().data()
-      this.setToken(data.token)
+      this.sessionId = data.sessionid
     })
   }
 
   logout () {
-    cookies.remove(this.tokenName)
-    clearTimeout(this.tokenRefreshTimeoutId)
-    this.tokenData = {}
-    this.token = null
-    this.tokenRefreshTimeoutId = null
+    cookies.remove(this.cookieName)
+    // TODO(raph): also remove the session from the server
   }
 
-  // TODO(raphael): Handle the refresh
-  refresh () {
-    this.api.custom('auth_token_refresh/').post({token: this.token}).then(response => {
-      const data = response.body().data()
-      this.setToken(data.token)
-    })
-  }
+  // TODO(raph): refresh auth once in a while, to avoid being disconnected while in a game
 }

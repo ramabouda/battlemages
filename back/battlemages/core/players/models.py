@@ -8,6 +8,7 @@ class Player(AbstractUser):
     friends = models.ManyToManyField('self', blank=True)
     gold = models.IntegerField(default=0)
     last_activity = models.DateField(auto_now=True)
+    connected = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "Player"

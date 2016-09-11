@@ -25,7 +25,9 @@ export const loginVue = new Vue({
         username: this.username,
         password: this.password,
       })
-        .then(() => (window.location = './game'))
+        .then(() => {
+          (window.location = './game')
+        })
         .catch(error => (this.error = error.message))
     },
   },
